@@ -2,23 +2,42 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS 18'
+        nodejs 'NodeJS 18' // Make sure NodeJS 18 is installed/configured in Jenkins
+    }
+
+    environment {
+        TEST_RESULTS = 'test-results' // Folder for Jest JUnit XML reports
     }
 
     stages {
+        // Stage 1: Install dependencies
         stage('Install Dependencies') {
             steps {
+                echo 'Installing Node.js dependencies...'
                 sh 'npm install'
             }
         }
 
-        stage('Run Tests') {
+        // Stage 2: Build (optional for Node.js, can include compilation or lint)
+        stage('Build') {
             steps {
+                echo 'Build stage (optional for Node.js)'
+                // For example, you can add build scripts here
+                // sh 'npm run build'
+            }
+        }
+
+        // Stage 3: Run Unit Tests
+        stage('Unit Tests') {
+            steps {
+                echo 'Running Jest unit tests...'
+                sh "mkdir -p ${TEST_RESULTS}" // Ensure folder exists
                 sh 'npm test'
             }
             post {
                 always {
-                    junit 'test-results/junit.xml'
+                    // Publish JUnit test results to Jenkins
+                    junit "${TEST_RESULTS}/junit.xml"
                 }
             }
         }
@@ -26,10 +45,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Tests passed!'
+            echo '✅ Build and tests succeeded!'
         }
         failure {
-            echo '❌ Tests failed.'
+            echo '❌ Build or tests failed!'
         }
     }
 }
